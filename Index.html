@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FloatChat - ARGO Ocean Data Discovery</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #1a73e8;
+            --secondary: #0d47a1;
+            --accent: #00bcd4;
+            --light: #f5f9ff;
+            --dark: #0a1931;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+            --gray: #78909c;
+            --light-gray: #cfd8dc;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0d47a1 0%, #1a73e8 100%);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            height: 95vh;
+        }
+        
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 1.5rem;
+        }
+        
+        .logo i {
+            color: var(--accent);
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 20px;
+        }
+        
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        
+        nav a:hover {
+            color: var(--accent);
+        }
+        
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--light-gray);
+        }
+        
+        .chat-header {
+            padding: 15px;
+            background: var(--light);
+            border-bottom: 1px solid var(--light-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background: #fafafa;
+        }
+        
+        .message {
+            max-width: 70%;
+            padding: 12px 15px;
+            border-radius: 15px;
+            line-height: 1.5;
+            position: relative;
+        }
+        
+        .user-message {
+            background: var(--primary);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .ai-message {
+            background: white;
+            border: 1px solid var(--light-gray);
+            align-self: flex-start;
+            border-bottom-left-radius: 5px;
+        }
+        
+        .message-time {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 5px;
+            text-align: right;
+        }
+        
+        .chat-input {
+            padding: 15px;
+            background: var(--light);
+            border-top: 1px solid var(--light-gray);
+            display: flex;
+            gap: 10px;
+        }
+        
+        .chat-input input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid var(--light-gray);
+            border-radius: 25px;
+            outline: none;
+            font-size: 1rem;
+        }
+        
+        .chat-input button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .chat-input button:hover {
+            background: var(--secondary);
+        }
+        
+        .visualization-panel {
+            width: 40%;
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+        
+        .viz-header {
+            padding: 15px;
+            background: var(--light);
+            border-bottom: 1px solid var(--light-gray);
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .viz-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            height: 300px;
+        }
+        
+        .data-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+        }
+        
+        .data-card h3 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        
+        .data-property {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--light-gray);
+        }
+        
+        .data-property:last-child {
+            border-bottom: none;
+        }
+        
+        .suggestion-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 15px;
+            background: var(--light);
+            border-top: 1px solid var(--light-gray);
+        }
+        
+        .chip {
+            background: white;
+            border: 1px solid var(--light-gray);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .chip:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        @media (max-width: 900px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .visualization-panel {
+                width: 100%;
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-water"></i>
+                <span>FloatChat</span>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">Data</a></li>
+                    <li><a href="#">Visualizations</a></li>
+                    <li><a href="#">About</a></li>
+                </ul>
+            </nav>
+        </header>
+        
+        <div class="main-content">
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h2>ARGO Data Assistant</h2>
+                    <div class="status">Online <i class="fas fa-circle" style="color: var(--success);"></i></div>
+                </div>
+                
+                <div class="chat-messages">
+                    <div class="message ai-message">
+                        <p>Hello! I'm your ARGO ocean data assistant. How can I help you explore ocean data today?</p>
+                        <div class="message-time">2:45 PM</div>
+                    </div>
+                    
+                    <div class="message user-message">
+                        <p>Show me temperature data for the North Atlantic from the last 6 months</p>
+                        <div class="message-time">2:46 PM</div>
+                    </div>
+                    
+                    <div class="message ai-message">
+                        <p>I've found ARGO float data for the North Atlantic region. Here's a visualization of temperature trends over the past 6 months:</p>
+                        <div class="message-time">2:47 PM</div>
+                    </div>
+                    
+                    <div class="message ai-message">
+                        <p>I'm also including salinity data as it correlates with temperature changes in this region.</p>
+                        <div class="message-time">2:47 PM</div>
+                    </div>
+                </div>
+                
+                <div class="suggestion-chips">
+                    <div class="chip">Show Pacific salinity data</div>
+                    <div class="chip">Temperature anomalies</div>
+                    <div class="chip">Float trajectory maps</div>
+                    <div class="chip">Compare regions</div>
+                </div>
+                
+                <div class="chat-input">
+                    <input type="text" placeholder="Ask about ocean data...">
+                    <button><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+            
+            <div class="visualization-panel">
+                <div class="viz-header">
+                    <h3>Data Visualization</h3>
+                </div>
+                <div class="viz-content">
+                    <div class="chart-container">
+                        <canvas id="temperatureChart"></canvas>
+                    </div>
+                    
+                    <div class="data-card">
+                        <h3>North Atlantic Data Summary</h3>
+                        <div class="data-property">
+                            <span>Region</span>
+                            <span>North Atlantic (40°N to 65°N, 50°W to 10°W)</span>
+                        </div>
+                        <div class="data-property">
+                            <span>Time Period</span>
+                            <span>April 2023 - September 2023</span>
+                        </div>
+                        <div class="data-property">
+                            <span>Floats Analyzed</span>
+                            <span>42</span>
+                        </div>
+                        <div class="data-property">
+                            <span>Avg. Temperature</span>
+                            <span>16.4°C</span>
+                        </div>
+                        <div class="data-property">
+                            <span>Avg. Salinity</span>
+                            <span>35.2 psu</span>
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize temperature chart
+        const ctx = document.getElementById('temperatureChart').getContext('2d');
+        const temperatureChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+                datasets: [
+                    {
+                        label: 'Surface Temperature (°C)',
+                        data: [15.2, 16.8, 18.5, 19.7, 19.2, 17.8],
+                        borderColor: '#f44336',
+                        backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    },
+                    {
+                        label: '100m Depth Temperature (°C)',
+                        data: [12.4, 13.1, 13.8, 14.2, 14.5, 13.9],
+                        borderColor: '#1a73e8',
+                        backgroundColor: 'rgba(26, 115, 232, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'North Atlantic Temperature Trends 2023'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: 'Temperature (°C)'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Simulate chat functionality
+        const chatMessages = document.querySelector('.chat-messages');
+        const chatInput = document.querySelector('.chat-input input');
+        const chatButton = document.querySelector('.chat-input button');
+        
+        chatButton.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        function sendMessage() {
+            const message = chatInput.value.trim();
+            if (message) {
+                // Add user message
+                addMessage(message, 'user');
+                chatInput.value = '';
+                
+                // Simulate AI response after a short delay
+                setTimeout(() => {
+                    let response = "I'm not sure how to help with that. Can you try asking about specific ocean data parameters?";
+                    
+                    if (message.toLowerCase().includes('temperature')) {
+                        response = "Here's the temperature data you requested. I've updated the visualization to show relevant trends.";
+                    } else if (message.toLowerCase().includes('salinity')) {
+                        response = "Salinity data is available for multiple regions. I've prepared a comparison chart for you.";
+                    } else if (message.toLowerCase().includes('argo float') || message.toLowerCase().includes('float')) {
+                        response = "ARGO float data shows profiles of temperature and salinity throughout the water column. I can show you specific float trajectories if you're interested.";
+                    }
+                    
+                    addMessage(response, 'ai');
+                }, 1000);
+            }
+        }
+        
+        function addMessage(text, sender) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            messageElement.classList.add(sender + '-message');
+            
+            const now = new Date();
+            const timeString = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+            
+            messageElement.innerHTML = `
+                <p>${text}</p>
+                <div class="message-time">${timeString}</div>
+            `;
+            
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Add click event to suggestion chips
+        const chips = document.querySelectorAll('.chip');
+        chips.forEach(chip => {
+            chip.addEventListener('click', function() {
+                chatInput.value = this.textContent;
+                sendMessage();
+            });
+        });
+    </script>
+</body>
+</html>
